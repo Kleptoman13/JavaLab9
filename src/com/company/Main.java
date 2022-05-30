@@ -3,51 +3,57 @@ package com.company;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+
+import java.text.ParseException;
 
 public class Main {
 
     public static void main(String[] args) {
-	JSONGetter jsonGetter = new JSONGetter();
-    jsonGetter.url = "https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=4";
-    jsonGetter.run();
+        JSONGetter jsonGetter = new JSONGetter();
+        jsonGetter.url = "https://pokeapi.co/api/v2/pokemon";
+        jsonGetter.run();
 
-    System.out.println("Waiting for data...");
-    String jsonString = jsonGetter.jsonIn;
-    System.out.println(jsonString);
+        System.out.println("Waiting for data...");
+        String jsonString = jsonGetter.jsonIn;
+        System.out.println(jsonString);
 
-    Object obj = null;
-    try
-    {
-        obj = new JSONParser().parse(jsonString);
-    } catch (ParseException e) {
-        e.printStackTrace();
-    }
+        Object obj = null;
+        try
+        {
+            obj = new JSONParser().parse(jsonString);
+        } catch (org.json.simple.parser.ParseException e) {
+            e.printStackTrace();
+        }
 
-    System.out.println();
+        System.out.println(obj);
+        System.out.println();
 
-    JSONArray jsonArray = (JSONArray) obj;
-    System.out.println(jsonArray.toJSONString());
-    System.out.println();
+        JSONObject jsonObj = (JSONObject) obj;
+        System.out.println(jsonObj.toJSONString());
+        System.out.println();
 
-    Rates rates = new Rates();
+        JSONArray results = (JSONArray) jsonObj.get("results");
+        System.out.println(results.toJSONString());
 
-    for (Object jsonObject:jsonArray) {
-        JSONObject current = (JSONObject) jsonObject;
-        String ccy = (String) current.get("ccy");
-        String ccy_base = (String) current.get("ccy_base");
-        String buy = (String) current.get("buy");
-        String sale = (String) current.get("sale");
-        Currency currency = new Currency(ccy, ccy_base, buy, sale);
-        rates.add(currency);
-    }
+        Pokemons pokemons = new Pokemons();
 
-    System.out.println(rates);
+        for (Object jsonObject:results) {
+            JSONObject current = (JSONObject) jsonObject;
+            String name = (String) current.get("name");
+            String url = (String) current.get("url");
+            Result pokemon = new Result(name, url);
+            pokemons.add(pokemon);
+        }
 
-    rates.getRates().sort(Currency.byNameAsc);
-    System.out.println(rates);
+        System.out.println(pokemons);
 
-    Rates withCHF = rates.filterByCCY("CHF");
-    System.out.println("with CHF: " + withCHF);
+        pokemons.getPokemons().sort(Result.byNameAsc);
+        System.out.println(pokemons);
+
+        pokemons.getPokemons().sort(Result.byNameDesc);
+        System.out.println(pokemons);
+
+        Pokemons tempName = pokemons.filterByName("pid");
+        System.out.println("With pid: " + tempName);
     }
 }
